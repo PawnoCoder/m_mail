@@ -1,12 +1,16 @@
 /*
 
-	About: Mail include v2.1
+	About: Mail include v2.2
 	Author: Noname
 
 */
 
 #if !defined _samp_included
 	#error "Please include a_samp or a_npc before m_mail"
+#endif
+
+#if !defined HTTP_ERROR_MALFORMED_RESPONSE
+	#error "You must have a_http include in order to use this one."
 #endif
 
 #if defined _m_mail_included_
@@ -42,27 +46,15 @@
 	#define MAX_PLAYER_MAIL 64
 #endif
 
-#if !defined FIX_const
-	#define FIX_const 0
-	#define M_MAIL_FIX_CLEAR
+#if !defined MAX_MAIL_SIZE
+	#define MAX_MAIL_SIZE 512
 #endif
 
-#if !FIX_const
-	native MM_HTTP(index, type, const url[], const data[], const callback[]) = HTTP;
+/*
+	Natives
+*/
 
-	#if defined _ALS_HTTP
-		#undef HTTP
-	#else
-		#define _ALS_HTTP
-	#endif
-
-	#define HTTP( MM_HTTP(
-
-	#if defined M_MAIL_FIX_CLEAR
-		#undef M_MAIL_FIX_CLEAR
-		#undef FIX_const
-	#endif
-#endif
+native __m_mail__HTTP(index, type, const url[], const data[], const callback[]) = HTTP;
 
 /*
 	Define functions
@@ -105,12 +97,12 @@ static
 stock Mail_Send(playerid, const function[], const to[], const additional_headers[], const subject[], const message[], type = MAIL_TYPE_NORMAL)
 {
 	new
-		info[512 + 1];
+		info[MAX_MAIL_SIZE + 1];
 
 	m_player_function[playerid] = !"MR_";
 	strcat(m_player_function[playerid], function);
 	format(info, sizeof(info), "to=%s&additional_headers=%s&subject=%s&message=%s&additional_parameters="M_MAIL_ADDRESS"&type=%i", to, additional_headers, subject, message, type);
-	HTTP(playerid, HTTP_POST, M_MAIL_URL, info, !"OnPlayerMailScriptResponse");
+	__m_mail__HTTP(playerid, HTTP_POST, M_MAIL_URL, info, !"OnPlayerMailScriptResponse");
 	return 1;
 }
 
